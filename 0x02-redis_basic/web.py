@@ -59,7 +59,7 @@ def cache(expirration: int) -> Callable:
     return wrapper
 
 
-@cache(expiration=10)
+@cache()
 def get_page(url: str) -> str:
     """Retrieves the HTML content of a URL.
 
