@@ -14,7 +14,7 @@ def cache(expirration: int) -> Callable:
         expiration (int): The expiration time of the cache in seconds.
 
     Returns:
-        Callable: A decorated function that caches its result.  
+        Callable: A decorated function that caches its result.
     """
     @wraps(expirration)
     def wrapper(func: callable) -> Callable:
@@ -39,17 +39,19 @@ def cache(expirration: int) -> Callable:
             cache_key = "cache:{}".format(url)
             # Check if the result is cached and not expired
             if redis_client.exists(cache_key) and time.time() \
-                - float(redis_client.hget(cache_key, 'timestamp')) < expirration:
+                    - float(redis_client.hget(cache_key,
+                                              'timestamp')) < expirration:
                 # Cache hit: return the cached content
                 print("Cache hit for URL: {}".format(url))
                 return redis_client.hget(cache_key, 'content').decode('utf-8')
             else:
-                # Cache miss: retrieve the result from the function and cache it
+                # Cache miss: retrieve the result from the function & cache it
                 print("Cache miss for URL: {}".format(url))
                 # call the original function to get the result
                 content = func(url)
                 # cache the result
-                redis_client.hmset(cache_key, {'timestamp': time.time(), 'content': content})
+                redis_client.hmset(
+                    cache_key, {'timestamp': time.time(), 'content': content})
                 # set the expiration time
                 redis_client.expire(cache_key, expirration)
                 return content
