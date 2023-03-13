@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from functools import wraps
 import time
 from typing import Callable
@@ -59,7 +60,7 @@ def cache(expirration: int) -> Callable:
     return wrapper
 
 
-@cache()
+@cache(expiration=10)
 def get_page(url: str) -> str:
     """Retrieves the HTML content of a URL.
 
