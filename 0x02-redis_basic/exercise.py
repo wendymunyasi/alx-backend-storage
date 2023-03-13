@@ -70,6 +70,49 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(fn: callable) -> None:
+    """Displays the history of calls of a particular function.
+
+    Args:
+        fn (callable): The function whose history of calls is to be
+        displayed.
+
+    Returns:
+        None
+    """
+    # Check if the function is not None and has a __self__ attribute
+    if fn is None or not hasattr(fn, '__self__'):
+        return
+    # Get the Redis instance associated with the function
+    redis_store = getattr(fn.__self__, '_redis', None)
+    # Check if the Redis instance is of the right type
+    if not isinstance(redis_store, redis.Redis):
+        return
+    # Get the name of the function
+    func_name = fn.__qualname__
+    # Create keys for the input and output lists of the function
+    input_list_key = "{}:inputs".format(func_name)
+    output_list_key = "{}:outputs".format(func_name)
+    # Get the number of times the function has been called
+    func_call_count = 0
+    if redis_store.exists(func_name) != 0:
+        func_call_count = int(redis_store.get(func_name))
+    # Print the history of calls
+    print("{} was called {} times:".format(func_name, func_call_count))
+    # Get the input and output lists from Redis
+    inputs = redis_store.lrange(input_list_key, 0, -1)
+    outputs = redis_store.lrange(output_list_key, 0, -1)
+    # Print the input and output of each function call
+    for inp, out in zip(inputs, outputs):
+        print('{}(*{}) -> {}'.format(
+            func_name,
+            inp.decode("utf-8"),
+            out,
+        ))
+    # Return None
+    return None
+
+
 class Cache:
     """Cache class.
     """
