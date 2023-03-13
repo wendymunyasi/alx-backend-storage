@@ -11,12 +11,13 @@ data in Redis using the random key and return the key.
 """
 import redis
 import uuid
-from typing import Union
+from typing import Union, Optional, Callable
 
 
 class Cache:
     """Cache class.
     """
+
     def __init__(self):
         """Cache class constructor that initializes a Redis client instance
         and flushes the database with flushdb.
@@ -42,3 +43,55 @@ class Cache:
         self._redis.set(key, data)
         # return the key
         return key
+
+    def get(self, key: str, fn:
+            Optional[Callable[[bytes], Union[str, bytes, int, float]]] = None)\
+            -> Union[str, bytes, int, float, None]:
+        """Method to get data from Redis and optionally apply a conversion
+        function to the retrieved data.
+
+        Args:
+            key (str): The key used to store the data in Redis.
+            fn (Optional): An optional callable that is used to convert the
+            retrieved data to the desired format. Defaults to None.
+
+        Returns:
+            Union[str, bytes, int, float, None]: The retrieved data,
+            optionally converted to the desired format.
+        """
+        # get the data from Redis
+        data = self._redis.get(key)
+        # if the key is not in Redis, return None
+        if data is None:
+            return None
+        # if a conversion function is provided, apply it to the data
+        if fn is not None:
+            data = fn(data)
+        # return the data
+        return data
+
+    def get_str(self, key: str) -> Optional[str]:
+        """Method to get a string from Redis.
+
+        Args:
+            key: The key used to store the string in Redis.
+
+        Returns:
+            Optional[str]: The retrieved string or None if the key does not
+            exist.
+        """
+        # use get with a conversion function to retrieve a string
+        return self.get(key, lambda x: x.decode("utf-8"))
+
+    def get_int(self, key: str) -> Optional[int]:
+        """Method to get an integer from Redis.
+
+        Args:
+            key: The key used to store the integer in Redis.
+
+        Returns:
+            Optional[int]: The retrieved integer or None if the key does not
+            exist.
+        """
+        # use get with a conversion function to retrieve an integer
+        return self.get(key, lambda x: int(x))
