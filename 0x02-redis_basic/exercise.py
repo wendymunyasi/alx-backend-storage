@@ -12,7 +12,40 @@ data in Redis using the random key and return the key.
 import redis
 import uuid
 from functools import wraps
-from typing import Union, Optional, Callable
+from typing import Any, Union, Optional, Callable
+
+
+def call_history(method: Callable) -> Callable:
+    """Decorator that stores the history of inputs and outputs for a
+    particular function in Redis.
+
+    Args:
+        method (Callable): A callable that represents the original
+        function to be decorated.
+
+    Returns:
+        Callable: A new callable that wraps the original function
+        and adds input and output history to Redis.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs) -> Any:
+        """ Wrapper function that adds input and output history to Redis.
+
+        Returns:
+            The output of the original function.
+        """
+        input_list_key = f"{method.__qualname__}:inputs"
+        output_list_key = f"{method.__qualname__}:outputs"
+        # Add the input arguments to the input list
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(input_list_key, str(args))
+        # Execute the original function and store the output
+        output = method(self, *args, **kwargs)
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(output_list_key, output)
+        # Return the output
+        return output
+    return wrapper
 
 
 def count_calls(method: Callable) -> Callable:
@@ -25,7 +58,12 @@ def count_calls(method: Callable) -> Callable:
         Callable: A decorated version of the method.
     """
     @wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, **kwargs) -> Any:
+        """Wrapper function that adds input and output history to Redis.
+
+        Returns:
+            The output of the original function.
+        """
         # use the qualified name of the method as the key
         key = method.__qualname__
         # increment the count for the key
