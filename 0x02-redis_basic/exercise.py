@@ -11,7 +11,28 @@ data in Redis using the random key and return the key.
 """
 import redis
 import uuid
+from functools import wraps
 from typing import Union, Optional, Callable
+
+
+def count_calls(method: Callable) -> Callable:
+    """Decorator to count the number of times a method is called.
+
+    Args:
+        method: The method to decorate.
+
+    Returns:
+        Callable: A decorated version of the method.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        # use the qualified name of the method as the key
+        key = method.__qualname__
+        # increment the count for the key
+        self._redis.incr(key)
+        # call the original method and return its result
+        return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Cache:
@@ -25,6 +46,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Method to store data in Redis and return a key for the stored
         data.
