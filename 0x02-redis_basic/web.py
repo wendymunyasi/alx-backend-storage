@@ -48,5 +48,8 @@ def get_page(url: str) -> str:
     Returns:
         str: _description_
     """
+    global count
+    # increment count
+    count += 1
     response = requests.get(url)
     return response.content.decode('utf-8')
