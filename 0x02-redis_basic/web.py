@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Module for implementing an expiring web cache and tracker
+"""
 from functools import wraps
 from typing import Callable
 import requests
@@ -35,7 +37,7 @@ def cache(expirration: Callable) -> Callable:
             return result.decode('utf-8')
         # if there is no cached result, fetch the data and cache it
         result = expirration(func)
-        redis_client.set('count:{}'.format(func), 0)
+        redis_client.set('count:{}'.format(func), 1)
         # set the result to expire after 10 seconds
         redis_client.setex('result:{}'.format(func), 10, result)
         return result
@@ -43,7 +45,7 @@ def cache(expirration: Callable) -> Callable:
     return wrapper
 
 
-@cache()
+@cache(lambda func: 10)
 def get_page(url: str) -> str:
     """Retrieves the HTML content of a URL.
 
