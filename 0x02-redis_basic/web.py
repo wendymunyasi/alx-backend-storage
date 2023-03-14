@@ -8,44 +8,50 @@ import redis
 
 redis_client = redis.Redis()
 
-
-def cache(expirration: Callable) -> Callable:
-    """A decorator that caches the result of a function with a Redis backend.
+# Define a new function to handle expiration time for cached results
+def expiration(time: int) -> Callable[[Callable], Callable]:
+    """_summary_
 
     Args:
-        expiration (int): The expiration time of the cache in seconds.
+        time (int): _description_
 
     Returns:
-        Callable: A decorated function that caches its result.
+        Callable[[Callable], Callable]: _description_
     """
-    @wraps(expirration)
-    def wrapper(func: callable) -> str:
-        """The actual caching decorator.
+    def decorator(func: Callable) -> Callable:
+        """_summary_
 
         Args:
-            func (callable): The function to cache.
+            func (Callable): _description_
 
         Returns:
-            str:  A wrapper function that caches the result of func.
+            Callable: _description_
         """
-        # increment the count of how many times this func has been requested
-        redis_client.incr('count:{}'.format(func))
-        # get the cached result for this func
-        result = redis_client.get('result:{}'.format(func))
-        # if there is a cached result, return it
-        if result:
-            return result.decode('utf-8')
-        # if there is no cached result, fetch the data and cache it
-        result = expirration(func)
-        redis_client.set('count:{}'.format(func), 1)
-        # set the result to expire after 10 seconds
-        redis_client.setex('result:{}'.format(func), 10, result)
-        return result
-    # return the wrapped function
-    return wrapper
+        # Define a new wrapper function to apply the caching logic
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            """_summary_
 
+            Returns:
+                _type_: _description_
+            """
+            # Generate a key based on the function name and arguments
+            key = f'{func.__name__}:{args}:{kwargs}'
+            # Check if the result is already cached
+            result = redis_client.get(key)
+            if result is not None:
+                # If it is, return the cached result
+                return result.decode('utf-8')
+            else:
+                # If it isn't, execute the function and cache the result
+                result = func(*args, **kwargs)
+                redis_client.setex(key, time, result)
+                return result
+        return wrapper
+    return decorator
 
-@cache()
+# Apply the cache decorator to the get_page function with a 10 second expiration time
+@expiration(10)
 def get_page(url: str) -> str:
     """Retrieves the HTML content of a URL.
 
