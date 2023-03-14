@@ -45,7 +45,7 @@ def cache(expirration: Callable) -> Callable:
     return wrapper
 
 
-@cache(lambda func: 10)
+@cache()
 def get_page(url: str) -> str:
     """Retrieves the HTML content of a URL.
 
