@@ -9,6 +9,8 @@ import redis
 redis_client = redis.Redis()
 
 # Define a new function to handle expiration time for cached results
+
+
 def expiration(time: int) -> Callable[[Callable], Callable]:
     """_summary_
 
@@ -50,7 +52,10 @@ def expiration(time: int) -> Callable[[Callable], Callable]:
         return wrapper
     return decorator
 
-# Apply the cache decorator to the get_page function with a 10 second expiration time
+# Apply the cache decorator to the get_page function with a 10 second
+# expiration time
+
+
 @expiration(10)
 def get_page(url: str) -> str:
     """Retrieves the HTML content of a URL.
