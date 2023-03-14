@@ -101,5 +101,4 @@ def get_page(url: str) -> str:
     Returns:
         str: _description_
     """
-    response = requests.get(url)
-    return response.text
+    return requests.get(url).text
