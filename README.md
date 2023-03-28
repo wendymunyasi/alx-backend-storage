@@ -18,3 +18,4 @@ All of the following folders are projects done during the studies:
 | ------------ | ----------- |
 | [`0x00. MySQL advanced`](https://github.com/wendymunyasi/alx-backend-storage/tree/master/0x00-MySQL_Advanced) | It aims to learn more about MySQL.|
 | [`0x01. NoSQL`](https://github.com/wendymunyasi/alx-backend-storage/tree/master/0x01-NoSQL) | It aims to learn about NoSQL.|
+| [`0x02. Redis basic`](https://github.com/wendymunyasi/alx-backend-storage/tree/master/0x02-redis_basic) | It aims to learn about how to use redis for basic operations.|
